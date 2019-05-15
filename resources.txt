@@ -1,1 +1,19 @@
+For future reference:
+https://stackoverflow.com/questions/8384029/auto-increment-in-mongodb-to-store-sequence-of-unique-user-id
+
 https://stackoverflow.com/questions/19760829/how-to-set-id-to-db-document-in-mongoose
+
+res
+https://expressjs.com/en/api.html#res
+https://expressjs.com/en/api.html#res.redirect
+
+
+mongoose promise
+https://stackoverflow.com/questions/9022099/how-to-use-mongoose-promise-mongo
+
+redirect https
+https://stackoverflow.com/questions/28352871/in-express-how-do-i-redirect-a-user-to-an-external-url
+
+clear your cache
+https://stackoverflow.com/questions/20978189/how-304-not-modified-works
+
