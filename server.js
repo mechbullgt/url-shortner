@@ -3,6 +3,8 @@ require('dotenv').config();
 var express = require('express');
 var app = express();
 
+var dns = require('dns');
+
 var bodyParser = require('body-parser');
 
 var mongo = require('mongodb');
@@ -53,7 +55,7 @@ var shortURLScehma = new Schema({
     websiteKey: {
         type: Number,
         required: false,
-        default:0
+        default: 0
     },
     timestamp: {
         type: Date,
@@ -92,34 +94,59 @@ app.get("/api/hello", function (req, res) {
 app.post('/api/shorturl/new', (req, res) => {
     console.log('Req body:', req.body);
     let websiteName = req.body['url'];
-    console.log('websiteName :', websiteName);
-    createAndSaveShortUrl(websiteName, handlerForCreateSave);
-    res.json({
-        website:websiteName,
-        websiteKey:count
+    async function checkWebStatus (){
+        await websiteName;
+        dns.lookup(websiteName, (err, address, family) => {
+        console.log('websiteName :', websiteName);
+        console.log('address :', address);
+        if (address === undefined) {
+            console.log('address: %j family: IPv%s', address, family);
+            return false;
+        }
+        console.log('address: %j family: IPv%s', address, family);
+        return true;
     });
-    count++;
+    };
+    let webStatus = checkWebStatus();
+    let status = webStatus;
+    console.log('status :', status);
+    if (status) {
+        createAndSaveShortUrl(websiteName, handlerForCreateSave);
+        res.json({
+            website: websiteName,
+            websiteKey: count
+        });
+        count++;
+    } else {
+        res.json({
+            error: "invalid url"
+        })
+    }
 });
 
 var site;
-app.get('/api/shorturl/:key',(req, res)=>{
-    console.log("Req params: ",req.params);
+app.get('/api/shorturl/:key', (req, res) => {
+    console.log("Req params: ", req.params);
     let webKey = req.params['key'];
-    var getTheWebsite = function(webKey,done){
-        ShortURL.find({
-            websiteKey:webKey
-        }, (err, data)=>{
-            if(err) done(err)
+    var getTheWebsite = function (webKey, done) {
+        var query = ShortURL.find({
+            websiteKey: webKey
+        }).sort({
+            'timestamp': -1
+        }).limit(1);
+        
+        query.exec((err, data) => {
+            if (err) done(err)
             done(null, data);
         });
     };
-    function handlerForGetWebsite(err, data){
-        if(err){
+    function handlerForGetWebsite(err, data) {
+        if (err) {
             console.log("Error while getting:", err);
-        } 
+        }
         site = data[0]['website'];
         console.log('site :', site);
-        console.log("Success GETting:",data);
+        console.log("Success GET:", data);
         /** It works */
         // res.json({
         //     website:site
