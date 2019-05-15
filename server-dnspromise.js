@@ -4,6 +4,7 @@ var express = require('express');
 var app = express();
 
 var dns = require('dns');
+var dnsPromises = dns.promises;
 
 var bodyParser = require('body-parser');
 
@@ -88,66 +89,40 @@ function handlerForCreateSave(err, data) {
 
 // your first API endpoint... 
 app.get("/api/hello", function (req, res) {
-    res.json({ greeting: 'hello API' })
+    res.json({ greeting: 'hello API' });
 });
 
 app.post('/api/shorturl/new', (req, res) => {
     console.log('Req body:', req.body);
     let websiteName = req.body['url'];
-    console.log('websiteName 1:', websiteName);
     let webStatus;
-
-    async function lookupPromise(){
-        return new Promise((resolve, reject) => {
-            dns.lookup(websiteName, (err, address, family) => {
-                console.log('websiteName 2:', websiteName);
-                console.log('address :', address);
-                if (err) reject(err);
-                resolve(address);
-            });
-       });
-    };
     
-    (async function getAddress(){
-        try{
-            const address = await lookupPromise();
-            // webStatus = true;
-            console.log('webStatus 2 :', webStatus);
-            console.log("Found valid address");
-            console.log('address: %j', address);
-            createAndSaveShortUrl(websiteName, handlerForCreateSave);
-            res.json({
-                url: websiteName,
-                websiteKey: count
-            });
-            count++;
-    }catch(err){
-        // console.log('webStatus 1 :', webStatus);
-        // console.log("Address is undefined");
-        // console.log('address: %j', address);
-        // webStatus = false;
-        // 
+    (async function getWebStatus (){
+        webStatus = await dnsPromises.lookup(websiteName, (err, address, family) => {
+        console.log('websiteName :', websiteName);
+        console.log('address :', address);
+        if (address === undefined) {
+            console.log('address: %j family: IPv%s', address, family);
+            return false;
+        }
+        console.log('address: %j family: IPv%s', address, family);
+        return true;
+    })
+})();
+
+    console.log('webStatus :', webStatus);
+    if (webStatus) {
+        createAndSaveShortUrl(websiteName, handlerForCreateSave);
+        res.json({
+            url: websiteName,
+            websiteKey: count
+        });
+        count++;
+    } else {
         res.json({
             error: "invalid url"
         })
-    };
-        // return webStatus;    
-    })();
-
-    // (async function letsCreateShortUrl(){
-    //     webStatus = await getAddress();
-    //     console.log('webStatus 3 :', webStatus);
-    //     if (webStatus) {
-    //         // createAndSaveShortUrl(websiteName, handlerForCreateSave);
-    //         // res.json({
-    //         //     url: websiteName,
-    //         //     websiteKey: count
-    //         // });
-    //         // count++;
-    //     } else {
-         
-    //     }    
-    // })();
+    }
 });
 
 var site;
@@ -160,6 +135,7 @@ app.get('/api/shorturl/:key', (req, res) => {
         }).sort({
             'timestamp': -1
         }).limit(1);
+        
         query.exec((err, data) => {
             if (err) done(err)
             done(null, data);
@@ -169,14 +145,14 @@ app.get('/api/shorturl/:key', (req, res) => {
         if (err) {
             console.log("Error while getting:", err);
         }
-        site = data[0]['website'];
+        site = data[0]['url'];
         console.log('site :', site);
         console.log("Success GET:", data);
         /** It works */
-        res.json({
-            website: site
-        });
-        // res.redirect(site);
+        // res.json({
+        //     website:site
+        // });    
+        res.redirect(site);
     };
     getTheWebsite(webKey, handlerForGetWebsite);
 })

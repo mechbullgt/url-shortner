@@ -1,6 +1,6 @@
 var dns = require('dns');
 
-dns.lookup("google.com",(err,address, family)=>{
+dns.lookup("googl#.com",(err,address, family)=>{
     if(err){
         console.log("Error while dnsing:",err);
     }
