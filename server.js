@@ -40,10 +40,8 @@ function bodyParserMiddleware() {
 // you should mount the body-parser here
 app.use('/', bodyParserMiddleware());
 
-app.use('/public', express.static(process.cwd() + '/public'));
-
 app.get('/', function (req, res) {
-    res.sendFile(process.cwd() + '/views/index.html');
+    res.sendFile(process.cwd() + '/index.html');
 });
 
 // Schema -> Model
