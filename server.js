@@ -63,52 +63,8 @@ var shortURLScehma = new Schema({
 
 var ShortURL = mongoose.model('ShortURL', shortURLScehma, 'webdb');
 
-// Find the latest saved document, and get the websiteKey
-// var queryObj;
-// var latestKeyValue;
-// var queryChain = function(done){
-//     var query = ShortURL.find().sort({
-//         'timestamp':-1
-//     }).limit(1);
-//     query.exec((err,data)=>{
-//         if(err) done(err)
-//         done(null, data);
-//     });
-// }
-
-// function getLatestWebsiteKey(obj){
-//     // console.log('obj :', obj);
-//     if(obj===null){
-//         console.log("There are no website records, please create a record with websiteKey");
-//         return 0;
-//     } 
-//     let websiteKey = obj[0]['websiteKey'];
-//     console.log("getLatestWebsiteKey()");
-//     console.log('websiteKey :', websiteKey);
-//     return websiteKey;
-// }
-
-// function handlerForQueryChain (err, data){
-//     if(err){
-//         console.log("Error while chain querying:",err);
-//         throw err;
-//     }
-//     console.log("Success chain querying: ",data);
-//     queryObj=data;
-//     // console.log('queryObj :', queryObj);
-//     latestKeyValue = (getLatestWebsiteKey(queryObj));
-//     latestKeyValue+=1;
-//     console.log('"latestKeyValue after" :', latestKeyValue);
-//     return latestKeyValue;
-// }
 var count = 0;
 var createAndSaveShortUrl = function (websiteName, done) {
-    // let key;
-    // queryChain(handlerForQueryChain).then((err, data)=>{
-    //     if(err) console.log("Error query:",err);
-    //     key = data;
-    // });
-    // console.log('key :', key);
     var shortUrl = new ShortURL({
         website: websiteName,
         websiteKey: count
@@ -128,22 +84,6 @@ function handlerForCreateSave(err, data) {
     return data;
 };
 
-// var updateWebsiteKey = function(id,done){
-//     ShortURL.findByIdAndUpdate({_id:id},{
-//         $inc:{websiteKey:1}},{new:true},(err,data)=>{
-//             if(err) done(err);
-//             done(null, data);
-//         });
-// }
-
-// function handlerForUpdateWebsiteKey (err, data){
-//     if(err){
-//         console.log("Error while updating the key");
-//     } 
-//     console.log("Success updating the key: ",data);
-// }
-
-
 // your first API endpoint... 
 app.get("/api/hello", function (req, res) {
     res.json({ greeting: 'hello API' });
@@ -160,8 +100,6 @@ app.post('/api/shorturl/new', (req, res) => {
     });
     count++;
 })
-
-
 
 app.listen(port, function () {
     console.log('Node.js listening at: ', port);
