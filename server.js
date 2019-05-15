@@ -48,11 +48,11 @@ app.get('/', function (req, res) {
 
 // Schema -> Model
 var shortURLScehma = new Schema({
-    url: {
+    original_url: {
         type: String,
         required: true
     },
-    websiteKey: {
+    short_url: {
         type: Number,
         required: false,
         default: 0
@@ -68,8 +68,8 @@ var ShortURL = mongoose.model('ShortURL', shortURLScehma, 'webdb');
 var count = 0;
 var createAndSaveShortUrl = function (websiteName, done) {
     var shortUrl = new ShortURL({
-        url: websiteName,
-        websiteKey: count
+        original_url: websiteName,
+        short_url: count
     });
     shortUrl.save((err, data) => {
         if (err) done(err);
@@ -94,10 +94,9 @@ app.get("/api/hello", function (req, res) {
 app.post('/api/shorturl/new', (req, res) => {
     console.log('Req body:', req.body);
     let websiteName = req.body['url'];
-    console.log('websiteName 1:', websiteName);
-    let webStatus;
+    // console.log('websiteName 1:', websiteName);
 
-    async function lookupPromise(){
+    async function lookupPromise() {
         return new Promise((resolve, reject) => {
             dns.lookup(websiteName, (err, address, family) => {
                 console.log('websiteName 2:', websiteName);
@@ -105,81 +104,54 @@ app.post('/api/shorturl/new', (req, res) => {
                 if (err) reject(err);
                 resolve(address);
             });
-       });
+        });
     };
-    
-    (async function getAddress(){
-        try{
+
+    (async function getAddress() {
+        try {
             const address = await lookupPromise();
-            // webStatus = true;
-            console.log('webStatus 2 :', webStatus);
             console.log("Found valid address");
             console.log('address: %j', address);
             createAndSaveShortUrl(websiteName, handlerForCreateSave);
             res.json({
-                url: websiteName,
-                websiteKey: count
+                original_url: websiteName,
+                short_url: count
             });
             count++;
-    }catch(err){
-        // console.log('webStatus 1 :', webStatus);
-        // console.log("Address is undefined");
-        // console.log('address: %j', address);
-        // webStatus = false;
-        // 
-        res.json({
-            error: "invalid url"
-        })
-    };
-        // return webStatus;    
+        } catch (err) {
+            console.log("Error: ", err);
+            console.log("Found invalid address");
+            res.json({
+                error: "invalid url"
+            })
+        };
     })();
-
-    // (async function letsCreateShortUrl(){
-    //     webStatus = await getAddress();
-    //     console.log('webStatus 3 :', webStatus);
-    //     if (webStatus) {
-    //         // createAndSaveShortUrl(websiteName, handlerForCreateSave);
-    //         // res.json({
-    //         //     url: websiteName,
-    //         //     websiteKey: count
-    //         // });
-    //         // count++;
-    //     } else {
-         
-    //     }    
-    // })();
 });
 
-var site;
+function getTheLatestWebsite(webKey){
+    return ShortURL.find({'short_url':webKey}).sort({'timestamp':-1}).limit(1).exec();
+}
+
 app.get('/api/shorturl/:key', (req, res) => {
-    console.log("Req params: ", req.params);
-    let webKey = req.params['key'];
-    var getTheWebsite = function (webKey, done) {
-        var query = ShortURL.find({
-            websiteKey: webKey
-        }).sort({
-            'timestamp': -1
-        }).limit(1);
-        query.exec((err, data) => {
-            if (err) done(err)
-            done(null, data);
-        });
-    };
-    function handlerForGetWebsite(err, data) {
-        if (err) {
-            console.log("Error while getting:", err);
-        }
-        site = data[0]['website'];
+    // console.log('req :', req);
+    console.log("Calling Key API");
+    console.log("Req params: ", req['params']);
+    let webKey = req['params']['key'];
+    console.log('webKey :', webKey);
+    getTheLatestWebsite(webKey).then((data)=>{
+        console.log('data',data);
+        let site = data[0]['original_url'];
         console.log('site :', site);
-        console.log("Success GET:", data);
-        /** It works */
-        res.json({
-            website: site
-        });
-        // res.redirect(site);
-    };
-    getTheWebsite(webKey, handlerForGetWebsite);
-})
+        /** Used the res.json to test the response, now redirecting */
+        // res.json({
+        //     'success':site
+        // });
+        res.status(301).redirect(req.protocol+"://"+site);
+        res.end();
+    }).catch((err)=>{
+        console.log("Error occured while searching");
+    });
+});
 
 app.listen(port, function () {
     console.log('Node.js listening at: ', port);
