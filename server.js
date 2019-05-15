@@ -63,7 +63,7 @@ var shortURLScehma = new Schema({
 
 var ShortURL = mongoose.model('ShortURL', shortURLScehma, 'webdb');
 
-// // Find the latest saved document, and get the websiteKey
+// Find the latest saved document, and get the websiteKey
 // var queryObj;
 // var latestKeyValue;
 // var queryChain = function(done){
@@ -74,6 +74,18 @@ var ShortURL = mongoose.model('ShortURL', shortURLScehma, 'webdb');
 //         if(err) done(err)
 //         done(null, data);
 //     });
+// }
+
+// function getLatestWebsiteKey(obj){
+//     // console.log('obj :', obj);
+//     if(obj===null){
+//         console.log("There are no website records, please create a record with websiteKey");
+//         return 0;
+//     } 
+//     let websiteKey = obj[0]['websiteKey'];
+//     console.log("getLatestWebsiteKey()");
+//     console.log('websiteKey :', websiteKey);
+//     return websiteKey;
 // }
 
 // function handlerForQueryChain (err, data){
@@ -89,39 +101,23 @@ var ShortURL = mongoose.model('ShortURL', shortURLScehma, 'webdb');
 //     console.log('"latestKeyValue after" :', latestKeyValue);
 //     return latestKeyValue;
 // }
-
-// function getLatestWebsiteKey(obj){
-//     // console.log('obj :', obj);
-//     if(obj===null){
-//         console.log("There are no website records, please create a record with websiteKey");
-//         return 0;
-//     } 
-//     let websiteKey = obj[0]['websiteKey'];
-//     console.log("getLatestWebsiteKey()");
-//     console.log('websiteKey :', websiteKey);
-//     return websiteKey;
-// }
-
+var count = 0;
 var createAndSaveShortUrl = function (websiteName, done) {
+    // let key;
+    // queryChain(handlerForQueryChain).then((err, data)=>{
+    //     if(err) console.log("Error query:",err);
+    //     key = data;
+    // });
+    // console.log('key :', key);
     var shortUrl = new ShortURL({
         website: websiteName,
-        websiteKey: getNextSequenceValue("website")
+        websiteKey: count
     });
     shortUrl.save((err, data) => {
         if (err) done(err);
         done(null, data);
     });
 };
-
-function getNextSequenceValue(sequenceName){
-    var sequenceDocument = db.counters.findAndModify({
-       query:{_id: sequenceName },
-       update: {$inc:{sequence_value:1}},
-       new:true
-    });
-     
-    return sequenceDocument.sequence_value;
- }
 
 function handlerForCreateSave(err, data) {
     if (err) {
@@ -158,7 +154,11 @@ app.post('/api/shorturl/new', (req, res) => {
     let websiteName = req.body['website'];
     console.log('websiteName :', websiteName);
     createAndSaveShortUrl(websiteName, handlerForCreateSave);
-    // updateWebsiteKey(res._id, handlerForUpdateWebsiteKey);
+    res.json({
+        website:websiteName,
+        websiteKey:count
+    });
+    count++;
 })
 
 
