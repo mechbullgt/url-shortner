@@ -146,6 +146,7 @@ app.get('/api/shorturl/:key', (req, res) => {
         // res.json({
         //     'success':site
         // });
+        // Need to add the protocol for the redirects
         res.status(301).redirect(req.protocol+"://"+site);
         res.end();
     }).catch((err)=>{
