@@ -137,7 +137,7 @@ app.get('/api/shorturl/:key', (req, res) => {
         }).limit(1);
         
         query.exec((err, data) => {
-            if (err) done(err)
+            if (err) done(err);
             done(null, data);
         });
     };
@@ -148,6 +148,7 @@ app.get('/api/shorturl/:key', (req, res) => {
         site = data[0]['url'];
         console.log('site :', site);
         console.log("Success GET:", data);
+        console.log('res :', res);
         /** It works */
         // res.json({
         //     website:site

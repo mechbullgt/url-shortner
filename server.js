@@ -93,7 +93,8 @@ app.get("/api/hello", function (req, res) {
 
 app.post('/api/shorturl/new', (req, res) => {
     console.log('Req body:', req.body);
-    let websiteName = req.body['url'];
+    let websiteName1 = req.body['url'];
+    let websiteName = websiteName1.replace(/(^\w+:|^)\/\//, '')
     // console.log('websiteName 1:', websiteName);
 
     async function lookupPromise() {
