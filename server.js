@@ -91,7 +91,7 @@ app.get("/api/hello", function (req, res) {
 
 app.post('/api/shorturl/new', (req, res) => {
     console.log('Req body:', req.body);
-    let websiteName = req.body['website'];
+    let websiteName = req.body['url'];
     console.log('websiteName :', websiteName);
     createAndSaveShortUrl(websiteName, handlerForCreateSave);
     res.json({
@@ -99,6 +99,34 @@ app.post('/api/shorturl/new', (req, res) => {
         websiteKey:count
     });
     count++;
+});
+
+var site;
+app.get('/api/shorturl/:key',(req, res)=>{
+    console.log("Req params: ",req.params);
+    let webKey = req.params['key'];
+    var getTheWebsite = function(webKey,done){
+        ShortURL.find({
+            websiteKey:webKey
+        }, (err, data)=>{
+            if(err) done(err)
+            done(null, data);
+        });
+    };
+    function handlerForGetWebsite(err, data){
+        if(err){
+            console.log("Error while getting:", err);
+        } 
+        site = data[0]['website'];
+        console.log('site :', site);
+        console.log("Success GETting:",data);
+        /** It works */
+        // res.json({
+        //     website:site
+        // });    
+        res.redirect(site);
+    };
+    getTheWebsite(webKey, handlerForGetWebsite);
 })
 
 app.listen(port, function () {
